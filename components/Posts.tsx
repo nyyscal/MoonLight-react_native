@@ -2,7 +2,7 @@ import { COLORS } from '@/constants/theme'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
 import { Ionicons } from '@expo/vector-icons'
-import { useMutation } from 'convex/react'
+import { useMutation, useQuery } from 'convex/react'
 import { Image } from 'expo-image'
 import { Link } from 'expo-router'
 import React, { useState } from 'react'
@@ -10,6 +10,7 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { styles } from "../assets/styles/feed.styles"
 import CommentsModal from './CommentsModal'
 import { formatDistanceToNow } from './Time'
+import {useUser} from "@clerk/clerk-expo"
 
 type PostProps ={
   post:{
@@ -41,6 +42,7 @@ const Posts = ({post}:PostProps) => {
 
   const toggleLike = useMutation(api.posts.toggleLike)
   const toggleBookmark = useMutation(api.bookmark.toggleBookmark)
+  const deletePost = useMutation(api.posts.deletePost)
   
   const handleLiked = async()=>{
     try {
@@ -59,6 +61,19 @@ const Posts = ({post}:PostProps) => {
     setIsBookmarked(newIsBookmarked)
   }
 
+  const {user} = useUser()
+  // console.log("User",user)
+  const currentUser = useQuery(api.users.getUserByClerkId,user ? {clerkId:user?.id}: "skip")
+
+  const handleDelete = async()=>{
+    try {
+      await deletePost({postId:post._id})
+    } catch (error) {
+      console.error("Error deleting post:",error)
+    }
+  }
+
+
   return (
     <View style={styles.post}>
      {/* Post Header */}
@@ -75,12 +90,16 @@ const Posts = ({post}:PostProps) => {
       </TouchableOpacity>
       </Link>
       {/* Shows Delete button if owner */}
-      {/* <TouchableOpacity>
+     {post.author._id !== currentUser?._id ? (
+         <TouchableOpacity>
         <Ionicons name='ellipsis-horizontal' size={20} color={COLORS.white}/>
-      </TouchableOpacity> */}
-      <TouchableOpacity>
-        <Ionicons name='trash-outline' size={20} color={COLORS.primary}/>
       </TouchableOpacity>
+     ):(
+       <TouchableOpacity onPress={handleDelete}>
+      <Ionicons name='trash-outline' size={20} color={COLORS.primary}/>
+      </TouchableOpacity>)
+     }
+       
      </View>
      {/* Image */}
      <Image source={post.imageUrl} style={styles.postImage} contentFit='cover' transition={200} cachePolicy="memory-disk"/>

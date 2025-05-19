@@ -39,7 +39,6 @@ export const createPost = mutation({
   }
 })
 
-
 export const getFeedPost = query({
   handler: async(ctx) =>{
     const currentUser = await getAuthUser(ctx)
@@ -109,5 +108,49 @@ export const toggleLike = mutation({
       }
       return true
     }
+  }
+})
+
+export const deletePost = mutation({
+  args:{postId:v.id("posts")},
+  handler: async(ctx,args)=>{
+    const currentUser = await getAuthUser(ctx)
+
+    const post = await ctx.db.get(args.postId)
+    if(!post) throw new Error("Post not found!")
+
+      //verify ownership
+    if(post.userId !== currentUser._id) throw new Error("Not authorized to delete this post!")
+
+      //delete post
+      const likes = await ctx.db.query("likes").withIndex("by_post",(q)=>q.eq("postId",args.postId))
+      .collect()
+
+      for(const like of likes){
+        await ctx.db.delete(like._id)
+      }
+
+      //delete associated comments
+      const comments = await ctx.db.query("comments").withIndex("by_post",(q)=>q.eq("postId",args.postId)).collect()
+
+      for (const comment of comments){
+        await ctx.db.delete(comment._id)
+      }
+
+      //delete booksmarks
+      const bookmarks = await ctx.db.query("bookmarks").withIndex("by_post",(q)=>q.eq("postId",args.postId)).collect()
+
+      for(const bookmark of bookmarks){
+        await ctx.db.delete(bookmark._id)
+      }
+
+      await ctx.storage.delete(post.storageId)
+
+      await ctx.db.delete(args.postId)
+
+      //decrement user post count by 1
+      await ctx.db.patch(currentUser._id,{
+        posts:Math.max(0,(currentUser.posts || 1)-1)
+      })
   }
 })
