@@ -15,10 +15,9 @@ type CommentsModal={
   postId: Id<"posts">;
   visible:boolean;
   onClose: ()=>void;
-  onCommentAdded:()=>void;
 }
 
-const CommentsModal = ({onClose,onCommentAdded,postId,visible}:CommentsModal) => {
+const CommentsModal = ({onClose,postId,visible}:CommentsModal) => {
   const [newComment,setNewComment] = useState("")
 
   const comments = useQuery(api.commets.getComments,{postId})
@@ -31,9 +30,7 @@ const CommentsModal = ({onClose,onCommentAdded,postId,visible}:CommentsModal) =>
         content:newComment,
         postId,
       })
-      setNewComment("")
-      onCommentAdded()
-      
+      setNewComment("")      
     } catch (error) {
       console.log("Error adding comment",error)
     }

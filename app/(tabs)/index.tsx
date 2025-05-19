@@ -1,21 +1,30 @@
 import Loader from "@/components/Loader";
 import Posts from "@/components/Posts";
+import Story from "@/components/Story";
+import { STORIES } from "@/constants/mock-data";
 import { COLORS } from "@/constants/theme";
 import { api } from "@/convex/_generated/api";
 import { useAuth } from "@clerk/clerk-expo";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "convex/react";
-import { FlatList, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { FlatList, RefreshControl, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "../../assets/styles/feed.styles";
-import { STORIES } from "@/constants/mock-data";
-import Story from "@/components/Story";
 
 export default function Index() {
   const {signOut} = useAuth()
+  const [refresh,setRefresh] = useState(false)
   const post = useQuery(api.posts.getFeedPost)
   if(post === undefined) return <Loader/>
 
   if(post.length === 0) return <NoPostsFound/>
+
+  const onRefresh = ()=>{
+    setRefresh(true)
+    setTimeout(()=>{
+      setRefresh(false)
+    },2000)
+  }
   return (
     <View
       style={styles.container}
@@ -35,6 +44,9 @@ export default function Index() {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={{paddingBottom:60}}
       ListHeaderComponent={<StoriesSection/>}
+      refreshControl={
+        <RefreshControl refreshing={refresh} onRefresh={onRefresh} tintColor={COLORS.primary}/>
+      }
       />
       
     </View>
