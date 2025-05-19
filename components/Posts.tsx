@@ -8,6 +8,8 @@ import { Link } from 'expo-router'
 import React, { useState } from 'react'
 import { Text, TouchableOpacity, View } from 'react-native'
 import { styles } from "../assets/styles/feed.styles"
+import CommentsModal from './CommentsModal'
+import { formatDistanceToNow } from './Time'
 
 type PostProps ={
   post:{
@@ -31,6 +33,10 @@ type PostProps ={
 const Posts = ({post}:PostProps) => {
   const [isLiked,setIsLiked] = useState(post.isLiked)
   const [likesCount,setLikesCount] = useState(post.likes)
+
+  const [commentsCount,setCommentsCount] = useState(post.comments)
+  const [showComments,setShowComments] = useState(false)
+
 
   const toggleLike = useMutation(api.posts.toggleLike)
   
@@ -78,7 +84,7 @@ const Posts = ({post}:PostProps) => {
         <TouchableOpacity onPress={handleLiked}>
           <Ionicons name={isLiked?'heart':'heart-outline'} size={24} color={isLiked? COLORS.primary : COLORS.white}/>
         </TouchableOpacity>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={()=>setShowComments(true)}>
            <Ionicons name='chatbubble-outline' size={24} color={COLORS.white}/>
         </TouchableOpacity>
         <TouchableOpacity>
@@ -103,13 +109,21 @@ const Posts = ({post}:PostProps) => {
           </View>
         )
       }
-      <TouchableOpacity>
-        <Text style={styles.commentText}>View all 2 comments</Text>
-      </TouchableOpacity>
+      {commentsCount >0 && <TouchableOpacity onPress={()=>setShowComments(true)}>
+        <Text style={styles.commentText}>
+         View all {commentsCount} comments
+        </Text>
+      </TouchableOpacity>}
 
       <Text style={styles.timeAgo
-      }>2 hours ago</Text>
+      }>{formatDistanceToNow(post._creationTime,{addSuffix:true})}</Text>
      </View>
+     <CommentsModal 
+     postId={post._id} 
+     visible={showComments}
+     onClose={()=>setShowComments(false)}
+      onCommentAdded={()=>setCommentsCount((prev)=>prev+1)}
+      />
     </View>
   )
 }
