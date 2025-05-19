@@ -1,6 +1,7 @@
 import { COLORS } from '@/constants/theme'
 import { api } from '@/convex/_generated/api'
 import { Id } from '@/convex/_generated/dataModel'
+import { useUser } from "@clerk/clerk-expo"
 import { Ionicons } from '@expo/vector-icons'
 import { useMutation, useQuery } from 'convex/react'
 import { Image } from 'expo-image'
@@ -10,7 +11,6 @@ import { Text, TouchableOpacity, View } from 'react-native'
 import { styles } from "../assets/styles/feed.styles"
 import CommentsModal from './CommentsModal'
 import { formatDistanceToNow } from './Time'
-import {useUser} from "@clerk/clerk-expo"
 
 type PostProps ={
   post:{
@@ -78,7 +78,7 @@ const Posts = ({post}:PostProps) => {
     <View style={styles.post}>
      {/* Post Header */}
      <View style={styles.postHeader}>
-      <Link href={"/(tabs)/notifications"}>
+      <Link href={currentUser?._id === post.author._id ? "/(tabs)/profile" : `/user/${post.author._id}`} asChild>
       <TouchableOpacity style={styles.postHeaderLeft}>
         <Image source={post.author.image}
         style={styles.postAvatar}
