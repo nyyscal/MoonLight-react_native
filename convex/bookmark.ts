@@ -37,5 +37,6 @@ export const getBookmarkedPosts = query({
       const post = await ctx.db.get(bookmark.postId)
       return post
     }))
+    return bookmarksWithInfo
   }
 })
