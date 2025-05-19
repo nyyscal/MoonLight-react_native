@@ -32,6 +32,7 @@ type PostProps ={
 
 const Posts = ({post}:PostProps) => {
   const [isLiked,setIsLiked] = useState(post.isLiked)
+  const [isBookmarked,setIsBookmarked] = useState(post.isBookmarked)
   const [likesCount,setLikesCount] = useState(post.likes)
 
   const [commentsCount,setCommentsCount] = useState(post.comments)
@@ -39,6 +40,7 @@ const Posts = ({post}:PostProps) => {
 
 
   const toggleLike = useMutation(api.posts.toggleLike)
+  const toggleBookmark = useMutation(api.bookmark.toggleBookmark)
   
   const handleLiked = async()=>{
     try {
@@ -50,6 +52,11 @@ const Posts = ({post}:PostProps) => {
     } catch (error) {
       console.log("Error toggling like:",error)
     }
+  }
+
+  const handleBookmarks = async()=>{
+    const newIsBookmarked = await toggleBookmark({postId:post._id})
+    setIsBookmarked(newIsBookmarked)
   }
 
   return (
@@ -87,8 +94,8 @@ const Posts = ({post}:PostProps) => {
         <TouchableOpacity onPress={()=>setShowComments(true)}>
            <Ionicons name='chatbubble-outline' size={24} color={COLORS.white}/>
         </TouchableOpacity>
-        <TouchableOpacity>
-           <Ionicons name='bookmark-outline' size={24} color={COLORS.white}/>
+        <TouchableOpacity onPress={handleBookmarks}>
+           <Ionicons name={isBookmarked ?'bookmark':'bookmark-outline'} size={24} color={isBookmarked? COLORS.primary: COLORS.white}/>
         </TouchableOpacity>
       </View>
       <TouchableOpacity>
